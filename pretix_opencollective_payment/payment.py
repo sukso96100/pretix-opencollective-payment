@@ -45,7 +45,7 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
 
     @property
     def test_mode_message(self):
-        if self.settings.get("use_staging"):
+        if self.settings.get("use_staging", as_type=bool):
             return _("The Open Collective staging environment is enabled.")
         return None
 
@@ -350,7 +350,7 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
 
         base_url = (
             OC_LEGACY_API_STAGING_BASEURL
-            if self.settings.get("use_staging")
+            if self.settings.get("use_staging", as_type=bool)
             else OC_LEGACY_API_BASEURL
         )
         url = f"{base_url}/collectives/{expected_slug}/transactions/{transaction_id}"
@@ -402,7 +402,7 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
             raise PaymentException(_("Open Collective API token is missing."))
         endpoint = (
             OC_GRAPHQL_STAGING_BASEURL
-            if self.settings.get("use_staging")
+            if self.settings.get("use_staging", as_type=bool)
             else OC_GRAPHQL_BASEURL
         )
         headers = {
