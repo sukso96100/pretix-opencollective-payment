@@ -260,7 +260,9 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
         return final_url
 
     def _format_amount(self, amount, currency):
-        return str(round_decimal(amount, currency))
+        rounded = round_decimal(amount, currency)
+        minor_units = (rounded * Decimal("100")).quantize(Decimal("1"))
+        return str(int(minor_units))
 
     def _primary_slug(self):
         return self.settings.get("event_slug") or self.settings.get("collective_slug")
