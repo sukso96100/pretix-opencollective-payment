@@ -15,6 +15,7 @@ classifiers = [
 
 dependencies = [
     "pretix",
+    "requests",
 ]
 
 [project.entry-points."pretix.plugin"]
@@ -29,3 +30,7 @@ package = true
 
 [tool.setuptools]
 packages = ["pretix_opencollective_payment"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+pretix_opencollective_payment = ["templates/**/*"]
