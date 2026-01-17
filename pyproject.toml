@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.entry-points."pretix.plugin"]
-pretix_opencollective = "pretix_opencollective:PretixPluginMeta"
+pretix_opencollective_payment = "pretix_opencollective_payment.apps:OpenCollectivePaymentApp"
 
 [build-system]
 requires = ["setuptools>=61", "wheel"]
@@ -28,4 +28,4 @@ build-backend = "setuptools.build_meta"
 package = true
 
 [tool.setuptools]
-packages = ["pretix_opencollective"]
+packages = ["pretix_opencollective_payment"]
