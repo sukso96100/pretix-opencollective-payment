@@ -18,6 +18,9 @@ dependencies = [
     "requests",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest"]
+
 [project.entry-points."pretix.plugin"]
 pretix_opencollective_payment = "pretix_opencollective_payment.apps:OpenCollectivePaymentApp"
 

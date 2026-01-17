@@ -239,13 +239,9 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
             "plugins:pretix_opencollective_payment:return",
             kwargs=url_kwargs,
         )
-        memo = "pretix_order"
-        if order is not None:
-            memo = f"pretix_order_{order.code}"
-
         amount_str = self._format_amount(amount, request.event.currency)
         donate_path = "/".join(
-            [base_url.rstrip("/"), expected_slug, "donate", amount_str, "pretix_order"]
+            [base_url.rstrip("/"), expected_slug, "donate", amount_str]
         )
 
         final_url = (
