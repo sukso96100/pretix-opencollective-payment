@@ -245,12 +245,7 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
 
         amount_str = self._format_amount(amount, request.event.currency)
         donate_path = "/".join(
-            [
-                base_url.rstrip("/"),
-                expected_slug,
-                "donate",
-                amount_str,
-            ]
+            [base_url.rstrip("/"), expected_slug, "donate", amount_str, "pretix_order"]
         )
 
         final_url = (
