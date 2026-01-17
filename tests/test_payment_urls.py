@@ -132,7 +132,7 @@ def test_build_donation_url_uses_production_and_no_memo(monkeypatch):
     )
 
     expected = (
-        "https://opencollective.com/my-collective/donate/1000?"
+        "https://opencollective.com/my-collective/donate/10?"
         + urllib.parse.urlencode({"redirect": redirect_url})
     )
     assert url == expected
@@ -153,12 +153,12 @@ def test_build_donation_url_uses_staging_when_enabled(monkeypatch):
     )
 
     expected = (
-        "https://staging.opencollective.com/my-collective/donate/1000?"
+        "https://staging.opencollective.com/my-collective/donate/10?"
         + urllib.parse.urlencode({"redirect": redirect_url})
     )
     assert url == expected
 
 
-def test_format_amount_returns_minor_units():
+def test_format_amount_returns_major_units():
     provider = build_provider({"collective_slug": "my-collective"})
-    assert provider._format_amount(Decimal("10.50"), "USD") == "1050"
+    assert provider._format_amount(Decimal("5.00"), "USD") == "5"
