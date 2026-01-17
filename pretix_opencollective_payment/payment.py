@@ -5,12 +5,10 @@ from collections import OrderedDict
 from decimal import Decimal
 
 import requests
-from requests import RequestException
 from django import forms
 from django.contrib import messages
 from django.template.loader import get_template
 from django.utils.translation import gettext_lazy as _
-
 from pretix.base.decimal import round_decimal
 from pretix.base.forms import SecretKeySettingsField
 from pretix.base.models import Order, OrderPayment, Quota
@@ -18,6 +16,7 @@ from pretix.base.payment import BasePaymentProvider, PaymentException
 from pretix.base.settings import SettingsSandbox
 from pretix.helpers.http import redirect_to_url
 from pretix.multidomain.urlreverse import build_absolute_uri, eventreverse
+from requests import RequestException
 
 from .opencollective import (
     CONFIRMED_ORDER_STATUSES,
@@ -226,7 +225,8 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
             raise PaymentException(_("Invalid payment amount."))
 
         base_url = OC_BASEURL
-        if self.settings.get("use_staging"):
+        use_staging = self.settings.get("use_staging", as_type=bool)
+        if use_staging:
             base_url = OC_STAGING_BASEURL
 
         url_kwargs = {}
@@ -250,10 +250,14 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
                 expected_slug,
                 "donate",
                 amount_str,
-                urllib.parse.quote(memo),
             ]
         )
-        return f"{donate_path}?{urllib.parse.urlencode({'redirect': redirect_url})}"
+
+        final_url = (
+            f"{donate_path}?{urllib.parse.urlencode({'redirect': redirect_url})}"
+        )
+
+        return final_url
 
     def _format_amount(self, amount, currency):
         return str(round_decimal(amount, currency))
