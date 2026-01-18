@@ -2,6 +2,8 @@
 
 Open Collective payment provider plugin for pretix.
 
+[Watch plugin demo video on YouTube](https://youtu.be/R6yUZhq6jgU)
+
 ## Installation & Configuration
 On your pretix setup, with virtualenv activated, run following command to install this plugin.
 ```bash
