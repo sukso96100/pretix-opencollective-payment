@@ -1,7 +1,4 @@
 from decimal import Decimal
-from types import SimpleNamespace
-import urllib.parse
-
 import sys
 import types
 
@@ -32,7 +29,8 @@ def _install_pretix_stubs():
         pass
 
     class DummyField:
-        pass
+        def __init__(self, *args, **kwargs):
+            pass
 
     class Order:
         STATUS_PAID = "paid"
@@ -87,78 +85,57 @@ def _install_pretix_stubs():
     )
 
 
-_install_pretix_stubs()
+def _install_django_stubs():
+    django_module = types.ModuleType("django")
+    contrib_module = types.ModuleType("django.contrib")
+    messages_module = types.ModuleType("django.contrib.messages")
+    forms_module = types.ModuleType("django.forms")
+    template_module = types.ModuleType("django.template")
+    loader_module = types.ModuleType("django.template.loader")
+    utils_module = types.ModuleType("django.utils")
+    translation_module = types.ModuleType("django.utils.translation")
 
-from pretix_opencollective_payment import payment as payment_module
+    messages_module._calls = []
 
+    def error(request, message):
+        messages_module._calls.append((request, message))
 
-class SettingsStub:
-    def __init__(self, values):
-        self._values = values
-
-    def get(self, key, as_type=None):
-        value = self._values.get(key)
-        if as_type is bool and value is not None:
-            return bool(value)
+    def gettext(value):
         return value
 
+    class DummyField:
+        def __init__(self, *args, **kwargs):
+            pass
 
-def build_provider(settings_values, currency="USD"):
-    provider = payment_module.OpenCollectivePaymentProvider.__new__(
-        payment_module.OpenCollectivePaymentProvider
-    )
-    provider.event = SimpleNamespace(currency=currency)
-    provider.settings = SettingsStub(settings_values)
-    return provider
+    class DummyTemplate:
+        def render(self, *args, **kwargs):
+            return ""
 
+    def get_template(*args, **kwargs):
+        return DummyTemplate()
 
-def build_request(event):
-    return SimpleNamespace(event=event, resolver_match=None)
+    messages_module.error = error
+    translation_module.gettext = gettext
+    translation_module.gettext_lazy = gettext
+    forms_module.CharField = DummyField
+    forms_module.BooleanField = DummyField
+    forms_module.EmailField = DummyField
+    loader_module.get_template = get_template
+    django_module.forms = forms_module
 
-
-def test_build_donation_url_uses_production_and_no_memo(monkeypatch):
-    provider = build_provider(
-        {"collective_slug": "my-collective", "use_staging": False}
-    )
-    redirect_url = "https://pretix.example.com/return/"
-    monkeypatch.setattr(
-        payment_module,
-        "build_absolute_uri",
-        lambda event, url, kwargs=None: redirect_url,
-    )
-
-    url = provider._build_donation_url(
-        build_request(provider.event), Decimal("10.00"), None
-    )
-
-    expected = (
-        "https://opencollective.com/my-collective/donate/10?"
-        + urllib.parse.urlencode({"redirect": redirect_url})
-    )
-    assert url == expected
-    assert "pretix_order" not in url
-
-
-def test_build_donation_url_uses_staging_when_enabled(monkeypatch):
-    provider = build_provider({"collective_slug": "my-collective", "use_staging": True})
-    redirect_url = "https://pretix.example.com/return/"
-    monkeypatch.setattr(
-        payment_module,
-        "build_absolute_uri",
-        lambda event, url, kwargs=None: redirect_url,
+    sys.modules.update(
+        {
+            "django": django_module,
+            "django.contrib": contrib_module,
+            "django.contrib.messages": messages_module,
+            "django.forms": forms_module,
+            "django.template": template_module,
+            "django.template.loader": loader_module,
+            "django.utils": utils_module,
+            "django.utils.translation": translation_module,
+        }
     )
 
-    url = provider._build_donation_url(
-        build_request(provider.event), Decimal("10.00"), None
-    )
 
-    expected = (
-        "https://staging.opencollective.com/my-collective/donate/10?"
-        + urllib.parse.urlencode({"redirect": redirect_url})
-    )
-    assert url == expected
-
-
-def test_format_amount_returns_major_units():
-    provider = build_provider({"collective_slug": "my-collective"})
-    assert provider._format_amount(Decimal("5.00"), "USD") == "5"
+_install_pretix_stubs()
+_install_django_stubs()
