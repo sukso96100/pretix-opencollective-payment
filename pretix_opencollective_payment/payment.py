@@ -230,7 +230,9 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
             id=order_id or "-",
             status=status or _("unknown"),
         )
-        note = _("Refunds and cancellations must be handled in Open Collective.")
+        note = _(
+            "To refund and cancel payment, Click the link <b>'Click here to issue refund on Open Collective'</b> below and issue refund on Open Collective first, Then click the <b>'Create a refund'</b> button below to mark this payment as refunded."
+        )
         refund_url = None
         if transaction_id and collective_slug:
             base_url = OC_STAGING_BASEURL if use_staging else OC_BASEURL
@@ -239,8 +241,8 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
                 f"?openTransactionId={transaction_id}"
             )
         if refund_url:
-            refund_note = _("Refund URL: {url}").format(url=refund_url)
-            return f"{summary}<br>{note}<br>{refund_note}"
+            refund_link = f'<a href="{refund_url}"><b>{_("Click here to issue refund on Open Collective")}</b></a>'
+            return f"{summary}<br><br>{note}<br><br>{refund_link}"
         return f"{summary}<br>{note}"
 
     def payment_control_render_short(self, payment):
