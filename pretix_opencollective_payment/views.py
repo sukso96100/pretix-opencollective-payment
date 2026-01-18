@@ -17,8 +17,15 @@ def return_view(request, *args, **kwargs):
         "transactionid": request.GET.get("transactionid"),
     }
 
-    if not any(redirect_data.values()):
-        messages.error(request, _("Missing Open Collective redirect parameters."))
+    has_order_reference = any(
+        [
+            redirect_data.get("orderId"),
+            redirect_data.get("orderIdV2"),
+            redirect_data.get("transactionid"),
+        ]
+    )
+    if not has_order_reference:
+        messages.error(request, _("Missing Open Collective order reference."))
         urlkwargs = {"step": "payment"}
         if "cart_namespace" in kwargs:
             urlkwargs["cart_namespace"] = kwargs["cart_namespace"]

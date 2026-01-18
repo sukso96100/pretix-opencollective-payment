@@ -259,14 +259,18 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
     def _primary_slug(self):
         return self.settings.get("event_slug") or self.settings.get("collective_slug")
 
+    def _normalize_slug(self, slug):
+        return slug.strip("/") if slug else slug
+
     def _valid_slugs(self):
         slugs = [self.settings.get("event_slug"), self.settings.get("collective_slug")]
-        return {slug for slug in slugs if slug}
+        return {self._normalize_slug(slug) for slug in slugs if slug}
 
     def _validate_order(self, payment, order_data):
         to_account = order_data.get("toAccount") or {}
         valid_slugs = self._valid_slugs()
-        if valid_slugs and to_account.get("slug") not in valid_slugs:
+        target_slug = self._normalize_slug(to_account.get("slug"))
+        if valid_slugs and target_slug not in valid_slugs:
             raise PaymentException(
                 _("The Open Collective order does not match this event.")
             )
