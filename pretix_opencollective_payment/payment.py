@@ -106,7 +106,9 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
         return super().is_allowed(request, total=total)
 
     def payment_form_render(self, request, total, order=None):
-        return _("You will be redirected to Open Collective to complete payment.")
+        return _(
+            "You will be redirected to Open Collective to complete payment. After completing your payment, Open Collective will show you redirect warning. Please Click 'Continue' button to get back to us. So that we can confirm your payment."
+        )
 
     def checkout_confirm_render(self, request, order=None, info_data=None):
         template = get_template(
