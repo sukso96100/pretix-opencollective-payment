@@ -2,13 +2,21 @@
 
 Open Collective payment provider plugin for pretix.
 
-## Development (uv)
+## Development setup
 
-- Create a virtual environment: `uv venv`
-- Install dependencies: `uv pip install -e .`
-- Add this project to your pretix instance by including `pretix_opencollective_payment` in `INSTALLED_APPS`.
-- Run pretix and enable the payment provider in the event settings.
-- Configure the provider with your collective slug, optional event slug, and personal token.
-- Enable staging mode if you want to test against Open Collective staging.
-- Inform attendees they must click **Continue** on Open Collective's redirect warning after payment.
-- Refunds and cancellations must be handled in Open Collective.
+Setup your own pretix development environment [following the documentation here/](https://docs.pretix.eu/dev/development/setup.html) Then, Enter Virtual environment of your pretix development instance
+
+```bash
+cd pretix
+source .venv/bin/activate # or something like source venv/bin/activate depending on your setup
+```
+
+On the shell with virtualenv activated, move to parent directory of your pretix setup then clone this reporitory. After that, enter the cloned repo and install the plugin.
+```bash
+cd ../
+git clone https://github.com/sukso96100/pretix-opencollective-payment.git
+cd pretix-opencollective-payment
+pip install -e .
+```
+
+Next, Run your local pretrix instance. You will be able to see Open Collective plugin on each event's plugin settings page. To test your modification, simply run `pip install -e .` with virtualenv activated for your pretix setup and current directory set as this plugin project's root.

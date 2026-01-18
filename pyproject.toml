@@ -22,7 +22,7 @@ dependencies = [
 dev = ["pytest"]
 
 [project.entry-points."pretix.plugin"]
-pretix_opencollective_payment = "pretix_opencollective_payment.apps:OpenCollectivePaymentApp"
+pretix_opencollective_payment = "pretix_opencollective_payment:PretixPluginMeta"
 
 [build-system]
 requires = ["setuptools>=61", "wheel"]
