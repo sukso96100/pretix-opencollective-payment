@@ -37,6 +37,12 @@ query ($order: OrderReferenceInput!) {
       slug
       name
     }
+    transactions {
+      id
+      legacyId
+      kind
+      type
+    }
   }
 }
 """
@@ -65,6 +71,12 @@ query ($transaction: TransactionReferenceInput!) {
       fromAccount {
         slug
         name
+      }
+      transactions {
+        id
+        legacyId
+        kind
+        type
       }
     }
   }

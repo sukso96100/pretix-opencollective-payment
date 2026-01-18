@@ -140,6 +140,17 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
     def payment_is_valid_session(self, request):
         return bool(request.session.get("payment_opencollective_order"))
 
+    def _extract_contribution_transaction_id(self, order_data):
+        transactions = order_data.get("transactions") or []
+        for transaction in transactions:
+            if (
+                transaction.get("kind") == "CONTRIBUTION"
+                and transaction.get("type") == "CREDIT"
+            ):
+                legacy_id = transaction.get("legacyId")
+                return legacy_id or transaction.get("id")
+        return None
+
     def execute_payment(self, request, payment):
         order_data = request.session.get("payment_opencollective_order")
         redirect_data = request.session.get("payment_opencollective_redirect", {})
@@ -151,9 +162,14 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
         status = self._validate_order(payment, order_data)
         info_payload = {
             "order_id": order_data.get("legacyId") or order_data.get("id"),
+            "transaction_id": self._extract_contribution_transaction_id(order_data),
             "status": status,
             "order": order_data,
             "redirect": redirect_data,
+            "collective_slug": self._normalize_slug(
+                self.settings.get("collective_slug")
+            ),
+            "use_staging": self.settings.get("use_staging", as_type=bool),
         }
         payment.info = json.dumps(info_payload)
         payment.save(update_fields=["info"])
@@ -203,11 +219,28 @@ class OpenCollectivePaymentProvider(BasePaymentProvider):
     def payment_control_render(self, request, payment):
         order_id = payment.info_data.get("order_id") if payment.info else None
         status = payment.info_data.get("status") if payment.info else None
+        collective_slug = (
+            payment.info_data.get("collective_slug") if payment.info else None
+        )
+        transaction_id = (
+            payment.info_data.get("transaction_id") if payment.info else None
+        )
+        use_staging = payment.info_data.get("use_staging") if payment.info else None
         summary = _("Open Collective order {id} ({status}).").format(
             id=order_id or "-",
             status=status or _("unknown"),
         )
         note = _("Refunds and cancellations must be handled in Open Collective.")
+        refund_url = None
+        if transaction_id and collective_slug:
+            base_url = OC_STAGING_BASEURL if use_staging else OC_BASEURL
+            refund_url = (
+                f"{base_url}/dashboard/{collective_slug}/transactions"
+                f"?openTransactionId={transaction_id}"
+            )
+        if refund_url:
+            refund_note = _("Refund URL: {url}").format(url=refund_url)
+            return f"{summary}<br>{note}<br>{refund_note}"
         return f"{summary}<br>{note}"
 
     def payment_control_render_short(self, payment):

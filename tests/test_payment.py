@@ -1,4 +1,5 @@
 from decimal import Decimal
+from decimal import Decimal
 from types import SimpleNamespace
 import urllib.parse
 
@@ -75,3 +76,58 @@ def test_build_donation_url_uses_staging_when_enabled(monkeypatch):
 def test_format_amount_returns_major_units():
     provider = build_provider({"collective_slug": "my-collective"})
     assert provider._format_amount(Decimal("5.00"), "USD") == "5"
+
+
+def test_payment_control_render_refund_url_production():
+    provider = build_provider({"collective_slug": "ubucon-asia"})
+    payment = SimpleNamespace(
+        info="payload",
+        info_data={
+            "order_id": 919699,
+            "transaction_id": 11503420,
+            "status": "PAID",
+            "collective_slug": "ubucon-asia",
+            "use_staging": False,
+        },
+    )
+
+    result = provider.payment_control_render(None, payment)
+
+    assert "https://opencollective.com/dashboard/ubucon-asia/" in result
+    assert "openTransactionId=11503420" in result
+
+
+def test_payment_control_render_refund_url_staging():
+    provider = build_provider({"collective_slug": "ubucon-asia"})
+    payment = SimpleNamespace(
+        info="payload",
+        info_data={
+            "order_id": 919699,
+            "transaction_id": 11503420,
+            "status": "PAID",
+            "collective_slug": "ubucon-asia",
+            "use_staging": True,
+        },
+    )
+
+    result = provider.payment_control_render(None, payment)
+
+    assert "https://staging.opencollective.com/dashboard/ubucon-asia/" in result
+    assert "openTransactionId=11503420" in result
+
+
+def test_payment_control_render_without_transaction_id():
+    provider = build_provider({"collective_slug": "ubucon-asia"})
+    payment = SimpleNamespace(
+        info="payload",
+        info_data={
+            "order_id": 919699,
+            "status": "PAID",
+            "collective_slug": "ubucon-asia",
+            "use_staging": False,
+        },
+    )
+
+    result = provider.payment_control_render(None, payment)
+
+    assert "openTransactionId=" not in result
